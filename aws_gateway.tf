@@ -32,7 +32,7 @@ resource "aws_apigatewayv2_stage" "lambda" {
 resource "aws_apigatewayv2_integration" "hello_scrapper" {
   api_id = aws_apigatewayv2_api.lambda.id
 
-  integration_uri    = aws_lambda_function.hello_scrapper.invoke_arn
+  integration_uri    = module.aws-collector.invoke_arn
   integration_type   = "AWS_PROXY"
   integration_method = "POST"
 }
@@ -42,4 +42,13 @@ resource "aws_apigatewayv2_route" "hello_scrapper" {
 
   route_key = "GET /hello"
   target    = "integrations/${aws_apigatewayv2_integration.hello_scrapper.id}"
+}
+
+resource "aws_lambda_permission" "api_gw" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = module.aws-collector.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"
 }

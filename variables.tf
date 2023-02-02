@@ -1,4 +1,4 @@
-# Input variable definitions
+# Common or system level variables
 
 variable "aws_region" {
   description = "AWS region for all resources."
