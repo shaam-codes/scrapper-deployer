@@ -7,17 +7,17 @@ data "archive_file" "zip" {
   output_path = "${path.module}/zip/service.zip"
 }
 
-resource "aws_s3_bucket" "lambda_bucket" {
-  bucket = random_pet.scrapper_bucket_name.id
+resource "aws_s3_bucket" "collector_bucket" {
+  bucket = random_pet.collector_bucket_name.id
 }
 
-resource "random_pet" "scrapper_bucket_name" {
-  prefix = "scrapper"
+resource "random_pet" "collector_bucket_name" {
+  prefix = "${var.app_name}-collector"
   length = 2
 }
 
-resource "aws_iam_role" "iam_lambda" {
-  name = "lambda"
+resource "aws_iam_role" "collector_lambda" {
+  name = "${var.app_name}_collector_lambda"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -32,27 +32,27 @@ resource "aws_iam_role" "iam_lambda" {
   })
 }
 
-resource "aws_s3_object" "lambda_scrapper" {
-  bucket = aws_s3_bucket.lambda_bucket.id
+resource "aws_s3_object" "collector_s3_object" {
+  bucket = aws_s3_bucket.collector_bucket.id
 
-  key    = "hello-scrapper.zip"
+  key    = "collector_lambda.zip"
   source = data.archive_file.zip.output_path
 
   etag = filemd5(data.archive_file.zip.output_path)
 }
 
-resource "aws_lambda_function" "hello_scrapper" {
-  function_name = "HelloScrrapper"
+resource "aws_lambda_function" "collector_lambda_function" {
+  function_name = "collector_lambda"
 
-  s3_bucket = aws_s3_bucket.lambda_bucket.id
-  s3_key    = aws_s3_object.lambda_scrapper.key
+  s3_bucket = aws_s3_bucket.collector_bucket.id
+  s3_key    = aws_s3_object.collector_s3_object.key
 
   runtime = "nodejs18.x"
   handler = "api.handler"
 
   source_code_hash = data.archive_file.zip.output_base64sha256
 
-  role = aws_iam_role.iam_lambda.arn
+  role = aws_iam_role.collector_lambda.arn
 }
 
 
