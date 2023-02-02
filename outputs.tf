@@ -1,9 +1,4 @@
-output "function_name" {
-  description = "Name of the Lambda function."
-
-  value = aws_lambda_function.hello_scrapper.function_name
-}
-
+# System level outputs
 output "base_url" {
   description = "Base URL for API Gateway stage."
 
